@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Heart, ShoppingCart, Loader2 } from "lucide-react";
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import { doc, setDoc, deleteDoc, getDoc, onSnapshot } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";

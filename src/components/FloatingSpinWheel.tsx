@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trophy, Coins, Crown, MapPin, Send, PartyPopper } from 'lucide-react';
 import { useAuth } from "../context/AuthContext"; 
 import AuthModal from "./AuthModal"; 
-import { db } from "../lib/firebase"; 
+import { db } from '@/lib/firebase'; 
 import { doc, updateDoc, increment, collection, addDoc, query, orderBy, limit, onSnapshot, getDoc } from "firebase/firestore";
 import { toast } from 'react-hot-toast';
 

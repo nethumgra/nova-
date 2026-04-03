@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Send, Loader2, RotateCcw } from "lucide-react";
 import { WELCOME_MESSAGES, QUICK_SUGGESTIONS } from "../lib/chatbot-instructions";
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 
 type Language = "english" | "sinhala" | "tamil";

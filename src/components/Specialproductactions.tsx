@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, onSnapshot } from "firebase/firestore";
 import { MessageCircle, Paintbrush, ShoppingBag, Heart } from "lucide-react";
 import { motion } from "framer-motion";
@@ -181,4 +181,5 @@ export default function SpecialProductActions({
     </motion.div>
   );
 }
+
 

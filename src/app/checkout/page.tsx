@@ -8,7 +8,7 @@ import {
   Copy, Check, Shield, Package, Upload, ArrowRight, Sparkles, RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { db } from '../../lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from "../../context/AuthContext";
 

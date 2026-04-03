@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { db } from '../lib/firebase';
+import { db } from '@/lib/firebase';
 import {
   doc, updateDoc, increment, collection, addDoc,
   query, orderBy, limit, onSnapshot, serverTimestamp,
@@ -689,3 +689,4 @@ export default function GameZoneTab() {
     </div>
   );
 }
+

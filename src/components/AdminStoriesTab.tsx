@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import {
   collection, addDoc, deleteDoc, doc, onSnapshot,
   orderBy, query, serverTimestamp, updateDoc, getDocs
@@ -691,3 +691,4 @@ export default function AdminStoriesTab() {
     </div>
   );
 }
+

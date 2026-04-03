@@ -1,7 +1,7 @@
 "use client";
 import { useAffiliate } from "../hooks/useAffiliate";
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import {
   collection,
   doc,

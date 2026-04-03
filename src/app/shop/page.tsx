@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { db } from "../../lib/firebase";
+import { db } from '@/lib/firebase';
 import {
   collection, query, onSnapshot, orderBy, where,
   doc, getDocs, startAfter, limit, QueryDocumentSnapshot, DocumentData

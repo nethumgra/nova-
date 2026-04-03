@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { Wallet, Send, CheckCircle, AlertCircle } from 'lucide-react';
 

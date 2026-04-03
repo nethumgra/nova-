@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { db } from '../../lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { Loader2, Search, Heart, ShoppingCart, X, SlidersHorizontal } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

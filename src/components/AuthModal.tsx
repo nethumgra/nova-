@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { auth, db } from "../lib/firebase"; // Ensure db is exported from your firebase config
+import { auth, db } from '@/lib/firebase'; // Ensure db is exported from your firebase config
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { X, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { db } from "../../../lib/firebase";
+import { db } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { Plus, Trash2, Save, RefreshCw, Image as ImageIcon } from 'lucide-react';
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Trash2, ShoppingCart, ArrowRight, Loader2, ShoppingBag as BagIcon } from 'lucide-react';
 import Link from 'next/link';
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, doc, deleteDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext"; // ✅ FIXED: Real auth context
 import { toast } from 'react-hot-toast';
@@ -314,3 +314,4 @@ const WishlistTab = () => {
 };
 
 export default WishlistTab;
+

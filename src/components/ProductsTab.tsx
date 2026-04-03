@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase';
 import { 
   collection, addDoc, getDocs, query, orderBy, 
   serverTimestamp, updateDoc, doc, deleteDoc, onSnapshot, arrayUnion 
@@ -28,7 +28,7 @@ function AddNewDesignInline({ uploading, setUploading, uploadToImgBB, onAdded }:
     setUploading(true);
     const url = await uploadToImgBB(pendingFile);
     if (url) {
-      const { db } = await import("../lib/firebase");
+      const { db } = await import("@/lib/firebase");
       const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
       const ref = await addDoc(collection(db, "designs"), {
         image: url,
