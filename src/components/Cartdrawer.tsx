@@ -10,7 +10,7 @@ interface CartItem {
   price: number;
   image: string;
   qty: number;
-  deliveryCharge?: number | string; // Type එක string වෙන්නත් පුළුවන් නිසා string දැම්මා
+  deliveryCharge?: number | string;
 }
 
 export default function CartDrawer() {
@@ -78,11 +78,10 @@ export default function CartDrawer() {
     window.dispatchEvent(new Event("cart-updated-internal"));
   };
 
-  // ✅ MATH FIX: ඔක්කොම Number() වලට convert කරනවා string concatenation නොවෙන්න
   const subtotal = cartItems.reduce((sum, i) => sum + (Number(i.price) * i.qty), 0);
-const deliveryFee = cartItems.length > 0 
-  ? Math.max(...cartItems.map(i => Number(i.deliveryCharge) || 350)) 
-  : 0;
+  const deliveryFee = cartItems.length > 0 
+    ? Math.max(...cartItems.map(i => Number(i.deliveryCharge) || 350)) 
+    : 0;
   const total = subtotal + deliveryFee;
   const totalQty = cartItems.reduce((sum, i) => sum + i.qty, 0);
 
@@ -98,11 +97,11 @@ const deliveryFee = cartItems.length > 0
       {/* FLOATING BUTTON */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 md:bottom-10 right-4 z-40 bg-gray-900 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl hover:bg-rose-500 transition-all active:scale-90 group"
+        className="fixed bottom-24 md:bottom-10 right-4 z-40 bg-gray-900 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl hover:bg-black transition-all active:scale-90 group"
       >
         <ShoppingCart size={22} />
         {totalQty > 0 && (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-2 -right-2 bg-black text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg">
             {totalQty > 99 ? "99+" : totalQty}
           </motion.div>
         )}
@@ -120,8 +119,8 @@ const deliveryFee = cartItems.length > 0
               {/* HEADER */}
               <div className="flex items-center justify-between px-6 py-6 border-b border-gray-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
-                    <ShoppingBag size={18} className="text-rose-500" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
+                    <ShoppingBag size={18} className="text-gray-900" />
                   </div>
                   <div>
                     <h2 className="font-black text-gray-900 text-sm uppercase tracking-tighter">Your Cart</h2>
@@ -145,8 +144,8 @@ const deliveryFee = cartItems.length > 0
                     <motion.div
                       key={item.id}
                       layout
-                      className="flex gap-4 p-3 rounded-2xl border border-gray-50 relative group hover:border-rose-100 transition-colors"
-                      animate={{ backgroundColor: lastAdded === item.id ? ["#fff1f2", "#ffffff"] : "#ffffff" }}
+                      className="flex gap-4 p-3 rounded-2xl border border-gray-100 relative group hover:border-gray-300 transition-colors"
+                      animate={{ backgroundColor: lastAdded === item.id ? ["#f3f4f6", "#ffffff"] : "#ffffff" }}
                     >
                       <div className="w-20 h-20 rounded-xl overflow-hidden bg-gray-50 border border-gray-100 shrink-0">
                         <img src={item.image || "/placeholder.jpg"} alt={item.name} className="w-full h-full object-cover" />
@@ -155,16 +154,16 @@ const deliveryFee = cartItems.length > 0
                       <div className="flex-1 flex flex-col justify-between py-1">
                         <div>
                           <h4 className="font-bold text-gray-800 text-[11px] uppercase line-clamp-1">{item.name}</h4>
-                          <p className="font-black text-rose-500 text-[13px] mt-0.5">Rs. {Number(item.price).toLocaleString()}</p>
+                          <p className="font-black text-gray-900 text-[13px] mt-0.5">Rs. {Number(item.price).toLocaleString()}</p>
                         </div>
                         
                         <div className="flex items-center gap-3 mt-2">
                           <div className="flex items-center bg-gray-50 rounded-lg p-1">
-                            <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center hover:text-rose-500 transition-colors"><Minus size={10} /></button>
+                            <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 flex items-center justify-center hover:text-black transition-colors"><Minus size={10} /></button>
                             <span className="w-6 text-center text-[11px] font-black">{item.qty}</span>
-                            <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center hover:text-rose-500 transition-colors"><Plus size={10} /></button>
+                            <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center hover:text-black transition-colors"><Plus size={10} /></button>
                           </div>
-                          <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
+                          <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-gray-900 transition-colors"><Trash2 size={14} /></button>
                         </div>
                       </div>
                     </motion.div>
@@ -186,18 +185,18 @@ const deliveryFee = cartItems.length > 0
                     </div>
                     <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
                       <span className="text-[12px] font-black text-gray-900 uppercase">Total Amount</span>
-                      <span className="text-lg font-black text-rose-500">Rs. {total.toLocaleString()}</span>
+                      <span className="text-lg font-black text-gray-900">Rs. {total.toLocaleString()}</span>
                     </div>
                   </div>
 
                   <Link
                     href="/checkout"
                     onClick={handleCheckoutNow}
-                    className="w-full bg-rose-500 hover:bg-rose-600 text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-100 active:scale-95"
+                    className="w-full bg-gray-900 hover:bg-black text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-gray-200 active:scale-95"
                   >
                     Checkout Now <ArrowRight size={16} />
                   </Link>
-                  <button onClick={clearCart} className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-rose-500 transition-colors">Clear Cart</button>
+                  <button onClick={clearCart} className="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors">Clear Cart</button>
                 </div>
               )}
             </motion.div>

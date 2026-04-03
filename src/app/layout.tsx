@@ -17,7 +17,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "LoverSmart.com - Premium Fancy & Fashion",
+  title: "NOVA - PREMIUM THINGS ON        YOUR FINGERS",
   description: "Exclusive shoes, clothes and fancy items curated for you.",
 };
 

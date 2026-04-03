@@ -137,7 +137,7 @@ const Footer = () => {
             {/* Brand */}
             <div>
               <Link href="/" className="footer-logo">
-                CMB LK<span className="footer-logo-dot">.</span>
+                Nova Space<span className="footer-logo-dot">.</span>
               </Link>
               <p style={{ fontSize: "12px", fontWeight: 500, color: "#aaa", lineHeight: 1.7, marginTop: "1rem", maxWidth: "260px" }}>
                 Sri Lanka's modern fashion & lifestyle destination. Quality products, fast delivery, real style.
@@ -198,8 +198,8 @@ const Footer = () => {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                   <Mail size={13} style={{ color: "#bbb", flexShrink: 0 }} />
-                  <a href="mailto:hello@cmblk.lk" style={{ fontSize: "12px", color: "#999", fontWeight: 500, textDecoration: "none" }}>
-                    hello@cmblk.lk
+                  <a href="mailto:hello@novaspace.com" style={{ fontSize: "12px", color: "#999", fontWeight: 500, textDecoration: "none" }}>
+                    hello@novaspace.com
                   </a>
                 </div>
               </div>
@@ -223,7 +223,7 @@ const Footer = () => {
 
             {/* Copyright */}
             <p style={{ fontSize: "10px", fontWeight: 700, color: "#ccc", textTransform: "uppercase", letterSpacing: "0.15em" }}>
-              © {currentYear} CMB LK. All Rights Reserved.
+              © {currentYear} Nova Space. All Rights Reserved.
             </p>
 
             {/* Legal Links */}

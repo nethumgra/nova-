@@ -217,7 +217,7 @@ const Navbar = () => {
           <div style={{ display: "flex", alignItems: "center" }}>
             {!isSearchOpen && (
               <Link href="/" className="nav-logo">
-                <span className="nav-logo-main">CMB LK</span>
+                <span className="nav-logo-main">Nova Space</span>
                 <span className="nav-logo-dot">.</span>
               </Link>
             )}

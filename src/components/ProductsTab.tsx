@@ -8,8 +8,90 @@ import {
 import { 
   Plus, X, Loader2, Save, Trash2, Image as ImageIcon, 
   PlusCircle, Truck, Tag, LayoutGrid, Sparkles, ChevronDown,
-  Crop, Check, ZoomIn, ZoomOut, RotateCw
+  Crop, Check, ZoomIn, ZoomOut, RotateCw, Package, Scissors
 } from "lucide-react";
+
+// ── Inline "Add New Design" mini-form ─────────────────────────────────────────
+function AddNewDesignInline({ uploading, setUploading, uploadToImgBB, onAdded }: {
+  uploading: boolean;
+  setUploading: (v: boolean) => void;
+  uploadToImgBB: (f: File) => Promise<string | null>;
+  onAdded: (d: any) => void;
+}) {
+  const [price, setPrice] = React.useState("");
+  const [stock, setStock] = React.useState<string | number>("");
+  const [previewUrl, setPreviewUrl] = React.useState("");
+  const [pendingFile, setPendingFile] = React.useState<File | null>(null);
+
+  const handleUpload = async () => {
+    if (!pendingFile) return;
+    setUploading(true);
+    const url = await uploadToImgBB(pendingFile);
+    if (url) {
+      const { db } = await import("../lib/firebase");
+      const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+      const ref = await addDoc(collection(db, "designs"), {
+        image: url,
+        price: Number(price) || 0,
+        stock: stock === "" ? null : Number(stock),
+        soldOut: false,
+        createdAt: serverTimestamp(),
+      });
+      onAdded({ id: ref.id, image: url, price: Number(price) || 0, stock });
+      setPrice(""); setStock(""); setPreviewUrl(""); setPendingFile(null);
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div className="flex gap-3 items-start bg-white border border-purple-100 rounded-2xl p-3">
+      {/* Image picker */}
+      <label className="cursor-pointer shrink-0">
+        <div className="w-14 h-14 rounded-xl border-2 border-dashed border-purple-200 hover:border-purple-400 flex items-center justify-center overflow-hidden transition-all">
+          {previewUrl ? (
+            <img src={previewUrl} className="w-full h-full object-cover" />
+          ) : (
+            <Plus size={18} className="text-purple-300" />
+          )}
+        </div>
+        <input type="file" accept="image/*" className="hidden" onChange={e => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          setPendingFile(f);
+          setPreviewUrl(URL.createObjectURL(f));
+        }} />
+      </label>
+
+      <div className="flex-1 space-y-1.5">
+        <input
+          type="number"
+          value={price}
+          onChange={e => setPrice(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))}
+          placeholder="Price (max 5 digits)"
+          className="w-full p-2.5 bg-gray-50 rounded-xl outline-none font-black text-purple-600 border border-purple-100 focus:border-purple-400 text-xs transition-all"
+        />
+        <input
+          type="number"
+          min="0"
+          value={stock}
+          onChange={e => setStock(e.target.value === "" ? "" : Number(e.target.value))}
+          placeholder="Stock (units)"
+          className="w-full p-2.5 bg-gray-50 rounded-xl outline-none font-black text-purple-700 border border-purple-100 focus:border-purple-400 text-xs transition-all"
+        />
+      </div>
+
+      <button
+        type="button"
+        disabled={!pendingFile || uploading}
+        onClick={handleUpload}
+        className="shrink-0 w-10 h-10 bg-purple-500 hover:bg-purple-600 disabled:opacity-40 rounded-xl flex items-center justify-center text-white transition-all mt-1"
+      >
+        {uploading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+      </button>
+    </div>
+  );
+}
+
 
 export default function FullProductManager() {
   const [products, setProducts] = useState<any[]>([]);
@@ -47,6 +129,10 @@ export default function FullProductManager() {
   const [newMainCat, setNewMainCat] = useState("");
   const [newSubCat, setNewSubCat] = useState("");
 
+  // ── Design & Material Library ──────────────────────────────────────────────
+  const [designs, setDesigns] = useState<any[]>([]);
+  const [materials, setMaterials] = useState<any[]>([]);
+
   const initialFormState = {
     name: "",
     mainCategory: "",
@@ -59,7 +145,16 @@ export default function FullProductManager() {
     description: "",
     images: [] as string[],
     variations: [] as { name: string, price: string, image: string }[],
-    tags: [] as string[]
+    tags: [] as string[],
+    // ── Product Type ──────────────────────────────────────────
+    productType: "ready" as "ready" | "customized",
+    readyMadeCode: "",     // 12-digit code (Ready Made only)
+    // Customized only:
+    materialId: "",        // selected material Firebase ID
+    materialImage: "",
+    materialPrice: "",     // 7 digits
+    materialStock: "" as string | number,
+    selectedDesignIds: [] as string[],  // multiple designs selected
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -73,7 +168,13 @@ export default function FullProductManager() {
     const unsubSpecial = onSnapshot(collection(db, "specialCategories"), (snap) => {
       setSpecialCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    return () => { unsub(); unsubSpecial(); };
+    const unsubDesigns = onSnapshot(query(collection(db, "designs"), orderBy("createdAt", "desc")), (snap) => {
+      setDesigns(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsubMaterials = onSnapshot(query(collection(db, "materials"), orderBy("createdAt", "desc")), (snap) => {
+      setMaterials(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => { unsub(); unsubSpecial(); unsubDesigns(); unsubMaterials(); };
   }, []);
 
   const fetchProducts = async () => {
@@ -317,7 +418,19 @@ export default function FullProductManager() {
         originalPrice: Number(formData.originalPrice), 
         discountedPrice: Number(formData.discountedPrice),
         deliveryCharge: Number(formData.deliveryCharge),
-        stock: formData.stock === "" ? null : Number(formData.stock),
+        // ── Product Type ──────────────────────────────────────────
+        productType: formData.productType,
+        readyMadeCode: formData.productType === "ready" ? (formData.readyMadeCode || "") : "",
+        // Customized fields
+        materialId:    formData.productType === "customized" ? (formData.materialId || "") : "",
+        materialImage: formData.productType === "customized" ? (formData.materialImage || "") : "",
+        materialPrice: formData.productType === "customized" ? (Number(formData.materialPrice) || 0) : 0,
+        materialStock: formData.productType === "customized" ? (formData.materialStock === "" ? null : Number(formData.materialStock)) : null,
+        selectedDesignIds: formData.productType === "customized" ? (formData.selectedDesignIds || []) : [],
+        // Stock: customized = material has stock + at least 1 design selected & has stock
+        stock: formData.productType === "customized"
+          ? ((formData.materialId && formData.selectedDesignIds.length > 0) ? (formData.materialStock === "" ? null : Number(formData.materialStock)) : 0)
+          : (formData.stock === "" ? null : Number(formData.stock)),
         updatedAt: serverTimestamp() 
       };
       if (editingId) { await updateDoc(doc(db, "products", editingId), payload); }
@@ -402,7 +515,12 @@ export default function FullProductManager() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-black text-gray-800 uppercase text-xs tracking-wider line-clamp-1">{p.name}</p>
-                <p className="text-[#c12a52] font-bold">LKR {p.discountedPrice}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-[#c12a52] font-bold">LKR {p.discountedPrice}</p>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wide ${p.productType === "customized" ? "bg-gray-100 text-gray-500" : "bg-rose-50 text-[#c12a52]"}`}>
+                    {p.productType === "customized" ? "✂️ Custom" : "📦 Ready"}
+                  </span>
+                </div>
                 
                 {/* Stock Badge */}
                 {hasStock ? (
@@ -650,6 +768,271 @@ export default function FullProductManager() {
                 <div>
                   <label className="text-[10px] font-black text-gray-400 uppercase mb-2 block">Product Name</label>
                   <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-4 bg-gray-50 rounded-2xl font-bold outline-none border border-transparent focus:border-rose-200" />
+                </div>
+
+                {/* ── PRODUCT TYPE TOGGLE ────────────────────────────────── */}
+                <div className="bg-gray-50 p-5 rounded-[2.5rem] border border-gray-100">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-3">Product Type</label>
+                  
+                  <div className="flex gap-3 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, productType: "ready", materialPrice: "", materialId: "", materialImage: "", materialStock: "", selectedDesignIds: [] })}
+                      className={`flex-1 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center justify-center gap-2 ${
+                        formData.productType === "ready"
+                          ? "bg-[#c12a52] text-white border-[#c12a52] shadow-lg shadow-rose-200"
+                          : "bg-white text-gray-400 border-gray-200 hover:border-[#c12a52] hover:text-[#c12a52]"
+                      }`}
+                    >
+                      <Package size={14} /> Ready Made
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, productType: "customized", readyMadeCode: "" })}
+                      className={`flex-1 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all border-2 flex items-center justify-center gap-2 ${
+                        formData.productType === "customized"
+                          ? "bg-[#111111] text-white border-[#111111] shadow-lg shadow-gray-300"
+                          : "bg-white text-gray-400 border-gray-200 hover:border-[#111111] hover:text-[#111111]"
+                      }`}
+                    >
+                      <Scissors size={14} /> Customized
+                    </button>
+                  </div>
+
+                  {/* Ready Made → 12-digit product code */}
+                  {formData.productType === "ready" && (
+                    <div>
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">
+                        Product Code <span className="text-gray-300 normal-case font-medium">(12 digits)</span>
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={12}
+                        value={formData.readyMadeCode}
+                        onChange={e => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 12);
+                          setFormData({ ...formData, readyMadeCode: val });
+                        }}
+                        placeholder="e.g. 123456789012"
+                        className="w-full p-4 bg-white rounded-2xl outline-none font-black text-gray-800 border border-gray-200 focus:border-[#c12a52] transition-all tracking-[0.25em] text-base"
+                      />
+                      <p className="text-[10px] text-gray-300 font-bold mt-1.5">
+                        {(formData.readyMadeCode || "").length}/12 digits entered
+                      </p>
+                    </div>
+                  )}
+
+                  {/* ── CUSTOMIZED: Material + Design System ── */}
+                  {formData.productType === "customized" && (
+                    <div className="space-y-5">
+
+                      {/* ════ MATERIAL SECTION ════ */}
+                      <div className="bg-blue-50/70 border border-blue-100 rounded-3xl p-5 space-y-4">
+                        <p className="text-[11px] font-black text-blue-600 uppercase tracking-widest">🧵 Material</p>
+
+                        {/* Material Library */}
+                        {materials.length > 0 && (
+                          <div>
+                            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2">Select from Library</p>
+                            <div className="flex gap-2 flex-wrap">
+                              {materials.map((m: any) => (
+                                <button
+                                  key={m.id}
+                                  type="button"
+                                  onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    materialId: m.id,
+                                    materialImage: m.image,
+                                    materialPrice: m.price ? String(m.price) : prev.materialPrice,
+                                    materialStock: m.stock ?? "",
+                                  }))}
+                                  className={`relative w-14 h-14 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
+                                    formData.materialId === m.id
+                                      ? "border-blue-500 scale-95 shadow-lg"
+                                      : "border-gray-200 hover:border-blue-300"
+                                  }`}
+                                >
+                                  <img src={m.image} className="w-full h-full object-cover" />
+                                  {formData.materialId === m.id && (
+                                    <div className="absolute inset-0 bg-blue-500/40 flex items-center justify-center">
+                                      <Check size={14} className="text-white" />
+                                    </div>
+                                  )}
+                                  {(m.stock === 0) && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                      <span className="text-white text-[6px] font-black uppercase leading-tight text-center">Out of<br/>Stock</span>
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Upload new material */}
+                        <div className="flex gap-3 items-start">
+                          <label className="cursor-pointer shrink-0">
+                            <div className={`w-16 h-16 rounded-2xl border-2 border-dashed flex items-center justify-center transition-all ${formData.materialImage && !materials.find((m:any)=>m.id===formData.materialId) ? "border-blue-300 bg-blue-50" : "border-blue-200 hover:border-blue-400 hover:bg-blue-50"}`}>
+                              {formData.materialImage && !materials.find((m:any)=>m.id===formData.materialId) ? (
+                                <img src={formData.materialImage} className="w-full h-full object-cover rounded-2xl" />
+                              ) : uploading ? (
+                                <Loader2 size={18} className="animate-spin text-blue-400" />
+                              ) : (
+                                <Plus size={18} className="text-blue-300" />
+                              )}
+                            </div>
+                            <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                              const file = e.target.files?.[0]; if (!file) return;
+                              setUploading(true);
+                              const url = await uploadToImgBB(file);
+                              if (url) {
+                                const ref = await addDoc(collection(db, "materials"), {
+                                  image: url,
+                                  price: Number(formData.materialPrice) || 0,
+                                  stock: formData.materialStock === "" ? null : Number(formData.materialStock),
+                                  soldOut: false,
+                                  createdAt: serverTimestamp(),
+                                });
+                                setFormData(prev => ({ ...prev, materialImage: url, materialId: ref.id }));
+                              }
+                              setUploading(false); e.target.value = "";
+                            }} />
+                          </label>
+                          <div className="flex-1 space-y-2">
+                            {/* Material Price — no LKR prefix, just box */}
+                            <div>
+                              <label className="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-1">Price (max 7 digits)</label>
+                              <input
+                                type="number"
+                                value={formData.materialPrice}
+                                onChange={e => {
+                                  const val = e.target.value.replace(/[^0-9]/g, "").slice(0, 7);
+                                  setFormData({ ...formData, materialPrice: val });
+                                }}
+                                placeholder="e.g. 2500000"
+                                className="w-full p-3 bg-white rounded-xl outline-none font-black text-blue-600 border border-blue-100 focus:border-blue-400 transition-all text-sm"
+                              />
+                            </div>
+                            {/* Material Stock */}
+                            <div>
+                              <label className="text-[9px] font-black text-blue-400 uppercase tracking-widest block mb-1">Stock (units)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={formData.materialStock}
+                                onChange={e => setFormData({ ...formData, materialStock: e.target.value === "" ? "" : Number(e.target.value) })}
+                                placeholder="e.g. 50"
+                                className="w-full p-3 bg-white rounded-xl outline-none font-black text-blue-700 border border-blue-100 focus:border-blue-400 transition-all text-sm"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Material status */}
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase w-fit ${formData.materialId ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${formData.materialId ? "bg-green-500" : "bg-red-500"}`} />
+                          {formData.materialId
+                            ? `Selected ✓ ${formData.materialStock !== "" ? `· ${formData.materialStock} in stock` : ""}`
+                            : "No Material — Out of Stock"}
+                        </div>
+                      </div>
+
+                      {/* ════ DESIGN SECTION ════ */}
+                      <div className="bg-purple-50/70 border border-purple-100 rounded-3xl p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] font-black text-purple-600 uppercase tracking-widest">🎨 Designs</p>
+                          <span className="text-[9px] font-black text-purple-400 bg-purple-100 px-2 py-1 rounded-full">
+                            {formData.selectedDesignIds.length} selected
+                          </span>
+                        </div>
+
+                        {/* Existing designs from library */}
+                        {designs.length > 0 && (
+                          <div>
+                            <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-2">Select Designs (multiple ok)</p>
+                            <div className="flex gap-2 flex-wrap">
+                              {designs.map((d: any) => {
+                                const isSelected = formData.selectedDesignIds.includes(d.id);
+                                return (
+                                  <button
+                                    key={d.id}
+                                    type="button"
+                                    onClick={() => {
+                                      const cur = formData.selectedDesignIds;
+                                      const next = isSelected
+                                        ? cur.filter((id: string) => id !== d.id)
+                                        : [...cur, d.id];
+                                      setFormData(prev => ({ ...prev, selectedDesignIds: next }));
+                                    }}
+                                    className={`relative w-14 h-14 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
+                                      isSelected
+                                        ? "border-purple-500 scale-95 shadow-lg"
+                                        : "border-gray-200 hover:border-purple-300"
+                                    }`}
+                                  >
+                                    <img src={d.image} className="w-full h-full object-cover" />
+                                    {isSelected && (
+                                      <div className="absolute inset-0 bg-purple-500/40 flex items-center justify-center">
+                                        <Check size={14} className="text-white" />
+                                      </div>
+                                    )}
+                                    {(d.stock === 0) && (
+                                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                        <span className="text-white text-[6px] font-black uppercase leading-tight text-center">Out of<br/>Stock</span>
+                                      </div>
+                                    )}
+                                    <div className="absolute bottom-0 left-0 right-0 bg-black/50 py-0.5 px-1">
+                                      <p className="text-white text-[7px] font-black text-center">{d.price ? `Rs.${Number(d.price).toLocaleString()}` : "—"}</p>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Add new design to library */}
+                        <div>
+                          <p className="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-2">
+                            {designs.length > 0 ? "➕ Add New Design to Library" : "Add First Design"}
+                          </p>
+                          <AddNewDesignInline
+                            uploading={uploading}
+                            setUploading={setUploading}
+                            uploadToImgBB={uploadToImgBB}
+                            onAdded={(newDesign: any) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                selectedDesignIds: [...prev.selectedDesignIds, newDesign.id],
+                              }));
+                            }}
+                          />
+                        </div>
+
+                        {/* Design status */}
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase w-fit ${formData.selectedDesignIds.length > 0 ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${formData.selectedDesignIds.length > 0 ? "bg-green-500" : "bg-red-500"}`} />
+                          {formData.selectedDesignIds.length > 0
+                            ? `${formData.selectedDesignIds.length} design${formData.selectedDesignIds.length > 1 ? "s" : ""} selected ✓`
+                            : "No Design — Out of Stock"}
+                        </div>
+                      </div>
+
+                      {/* ── Overall availability ── */}
+                      <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 text-xs font-black uppercase tracking-widest ${
+                        formData.materialId && formData.selectedDesignIds.length > 0
+                          ? "bg-green-50 border-green-200 text-green-700"
+                          : "bg-red-50 border-red-200 text-red-500"
+                      }`}>
+                        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${formData.materialId && formData.selectedDesignIds.length > 0 ? "bg-green-500" : "bg-red-500"}`} />
+                        {formData.materialId && formData.selectedDesignIds.length > 0
+                          ? "✅ Ready — Product is Available"
+                          : `❌ ${!formData.materialId && formData.selectedDesignIds.length === 0 ? "Material & Design missing" : !formData.materialId ? "Material missing" : "No designs selected"} — Out of Stock`
+                        }
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-6 bg-gray-50 p-6 rounded-[2.5rem]">

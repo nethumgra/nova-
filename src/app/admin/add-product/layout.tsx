@@ -4,14 +4,15 @@ import {
   LayoutDashboard, ShoppingBag, Users, 
   Package, BarChart3, Settings, LogOut, 
   Megaphone, HeartHandshake, Home,
-  BookOpen // ✅ Stories icon
+  BookOpen, Layers
 } from 'lucide-react';
 
 // Tabs Component Import
 import AdminOrdersTab from "../../../components/AdminOrdersTab";
 import ProductsTab from "../../../components/ProductsTab";
 import AdminHomeSettingsTab from "../../../components/AdminHomeSettingsTab";
-import AdminStoriesTab from "../../../components/AdminStoriesTab"; // ✅ Already imported
+import AdminStoriesTab from "../../../components/AdminStoriesTab";
+import StocksTab from "../../../components/StocksTab"; // ✅ Stock Manager
 
 export default function AdminLayout() {
   const [activeTab, setActiveTab] = useState('Products');
@@ -22,7 +23,8 @@ export default function AdminLayout() {
     { name: 'Orders', icon: <ShoppingBag size={20} /> },
     { name: 'Reseller Orders', icon: <HeartHandshake size={20} /> },
     { name: 'Products', icon: <Package size={20} /> },
-    { name: 'Stories', icon: <BookOpen size={20} /> }, // ✅ NEW
+    { name: 'Stories', icon: <BookOpen size={20} /> },
+    { name: 'Stocks', icon: <Layers size={20} /> }, // ✅ Stock Manager
     { name: 'Financials', icon: <BarChart3 size={20} /> },
     { name: 'Manage Resellers', icon: <Users size={20} /> },
     { name: 'Marketing', icon: <Megaphone size={20} /> },
@@ -37,8 +39,10 @@ export default function AdminLayout() {
         return <AdminOrdersTab />;
       case 'Products':
         return <ProductsTab />;
-      case 'Stories': // ✅ NEW
+      case 'Stories':
         return <AdminStoriesTab />;
+      case 'Stocks':
+        return <StocksTab />;
       default:
         return (
           <div className="p-20 text-center uppercase font-black text-gray-300">
