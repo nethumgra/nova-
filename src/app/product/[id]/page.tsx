@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { db } from "../../@/lib/firebase";
+import { db } from "@/lib/firebase";
 import { doc, getDoc, getDocs, collection, addDoc, onSnapshot, query, orderBy, limit, serverTimestamp } from "firebase/firestore";
 import { ShoppingBag, Share2, Plus, Minus, Star, Check, Lock, MessageCircle, Paintbrush, Heart, Package, Scissors, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
